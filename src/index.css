@@ -11,3 +11,28 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.Container {
+  margin-top: 20px;
+}
+
+.Card {
+  margin-bottom: 20px;
+}
+.Row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.Col {
+  flex-basis: calc(33.33% - 20px);
+}
+.Card.Body {
+  text-align: center;
+}
+
+
+.Button {
+  margin-right: 10px;
+}
