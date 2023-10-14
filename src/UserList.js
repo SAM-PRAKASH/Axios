@@ -1,162 +1,133 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, Modal, Form , Container , Card , Col , Row } from 'react-bootstrap';
 
-class UserList extends Component {
-  state = {
-    users: [],
-    showAddModal: false,
-    showEditModal: false,
-    selectedUser: {},
-    newUser: {
-      name: '',
-      email: '',
-    },
-  };
+const UserList = () => {
+  const [userList, setUserList] = useState([]);
+  const [popoverAddressContent, setPopoverAddressContent] = useState('');
+  const [popoverCompanyContent, setPopoverCompanyContent] = useState('');
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
 
-  componentDidMount() {
-    this.fetchUsers();
-  }
 
-  fetchUsers = () => {
+  useEffect(() => {
     axios.get('https://jsonplaceholder.typicode.com/users')
-      .then((response) => {
-        this.setState({ users: response.data });
+      .then(response => {
+        setUserList(response.data);
       })
-      .catch((error) => {
-        console.error('Error : Fetching User Data', error);
+      .catch(error => {
+        console.error('Error fetching data: ', error);
       });
+  }, []);
+
+  const addressPopoverClick = (address) => {
+    setPopoverAddressContent(address);
+  };
+  const companyPopoverClick = (company) => {
+    setPopoverCompanyContent(company);
   };
 
-  handleAddModal = () => {
-    this.setState({ showAddModal: !this.state.showAddModal });
+  const deleteUser = (id) => {
+    setUserList(prevUsers => prevUsers.filter(user => user.id !== id));
   };
 
-  handleEditModal = (user) => {
-    this.setState({ showEditModal: !this.state.showEditModal, selectedUser: user });
+  const addUser = () => {
+    // Generate a unique ID for the new user (in a real scenario, this should come from the server)
+    const newUserId = userList.length + 1;
+    
+    // Create a new user object
+    const newUser = {
+      id: newUserId,
+      name: newUserName,
+      username: newUserEmail, // Assuming email as the username for this example
+      // Add other properties for the new user as needed
+    };
+
+    // Update the state with the new user
+    setUserList(prevUsers => [...prevUsers, newUser]);
+
+    // Clear the input fields
+    setNewUserName('');
+    setNewUserEmail('');
   };
 
-  handleChange = (e) => {
-    const { name, value } = e.target;
-    this.setState({
-      newUser: { ...this.state.newUser, [name]: value },
-    });
-  };
-
-  handleAddUser = () => {
-    const { newUser, users } = this.state;
-    if (newUser.name && newUser.email) {
-      const updatedUsers = [...users, newUser];
-      this.setState({
-        users: updatedUsers,
-        newUser: {},
-      });
-      this.handleAddModal();
-    } else {
-      console.error('Error adding user: Required fields are missing');
-    }
-  };
-
-  handleEditUser = () => {
-    const { selectedUser, users } = this.state;
-    const userIndex = users.findIndex(user => user.id === selectedUser.id);
-  
-    if (userIndex !== -1) {
-      const updatedUsers = [...users];
-      updatedUsers[userIndex] = selectedUser;
-  
-      this.setState({
-        users: updatedUsers,
-        selectedUser: {},
-      });
-      this.handleEditModal();
-    } else {
-      console.error('Error editing user: User not found');
-    }
-  };
-
-  handleDeleteUser = (id) => {
-    const updatedUsers = this.state.users.filter(user => user.id !== id);
-    this.setState({ users: updatedUsers });
-  };
-
-  render() {
-    const { users } = this.state;
-    return (
-      <div>
-        <h1>User List</h1>
-        <Button variant="primary" onClick={this.handleAddModal}>Add User</Button>
-        <Container>
-        <Row>
-          {users.map((user) => (
-            <Col key={user.id} md={4}>
-              <Card>
-                <Card.Body>
-                  <Card.Text>
-                  <strong>Name:</strong>{user.name}<br></br>
-                    <strong>Email:</strong> {user.email}
-                  </Card.Text>
-                  <Button variant="info" onClick={() => this.handleEditModal(user)}>
-                    Edit
-                  </Button>
-                  <Button variant="danger" onClick={() => this.handleDeleteUser(user.id)}>
-                    Delete
-                  </Button>
-                </Card.Body>
-              </Card>
-            </Col>
+  return (
+    <div>
+      <h1>User List</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>User Name</th>
+            <th>City</th>
+            <th>Phone</th>
+            <th>Website</th>
+            <th>Company</th>
+          </tr>
+        </thead>
+        <tbody>
+          {userList.map(user => (
+            <tr key={user.id}>
+              <td>{user.id}</td>
+              <td>{user.name}</td>
+              <td>{user.username}</td>
+              <td>
+                <button
+                  type="button"
+                  className="btn"
+                  data-toggle="popover"
+                  title="Address"
+                  data-content={user.name + user.address.street + ', ' + user.address.suite + ', ' + user.address.city + ' - ' + user.address.zipcode + " / " + "Lat" + user.address.geo.lat + " Lng" + user.address.geo.lng}
+                  onClick={() => addressPopoverClick('User Name: ' + user.name + ' - Full Address: ' + user.address.street + ', ' + user.address.suite + ', ' + user.address.city + ' - ' + user.address.zipcode + " / " + "Lat" + user.address.geo.lat + " Lng" + user.address.geo.lng)}
+                >Address</button>
+              </td>
+              <td>{user.phone}</td>
+              <td>{user.website}</td>
+              <td>
+              <button
+              type="button"
+                  className="btn"
+                  data-toggle="popover"
+                  title="Company"
+                  data-content={user.name + user.company.name + ',' + user.company.catchPhrase + ',' + user.company.bs}
+                  onClick={() => companyPopoverClick('User Name: ' + user.name + ' - Company Details: ' + user.company.name + ',' + user.company.catchPhrase + ',' + user.company.bs)}
+              >Company</button>
+              </td>
+              <td> <button onClick={() => deleteUser(user.id)}>Delete</button></td>
+            </tr>
           ))}
-        </Row>
-      </Container>
+        </tbody>
+      </table>
 
-        <Modal show={this.state.showAddModal} onHide={this.handleAddModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Add User</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group controlId="name">
-                <Form.Label>Name</Form.Label>
-                <Form.Control type="text" name="name" value={this.state.newUser.name} onChange={this.handleChange} />
-              </Form.Group>
-              <Form.Group controlId="email">
-                <Form.Label>Email</Form.Label>
-                <Form.Control type="email" name="email" value={this.state.newUser.email} onChange={this.handleChange} />
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={this.handleAddModal}>Cancel</Button>
-            <Button variant="primary" onClick={this.handleAddUser}>Save</Button>
-          </Modal.Footer>
-        </Modal>
 
-        <Modal show={this.state.showEditModal} onHide={this.handleEditModal}>
-          <Modal.Header closeButton>
-            <Modal.Title>Edit User</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group controlId="name">
-                <Form.Label>Name</Form.Label>
-                <Form.Control type="text" name="name" value={this.state.selectedUser.name} onChange={(e) => this.handleEditModal({ ...this.state.selectedUser, name: e.target.value })} />
-              </Form.Group>
-              <Form.Group controlId="email">
-                <Form.Label>Email</Form.Label>
-                <Form.Control type="email" name="email" value={this.state.selectedUser.email} onChange={(e) => this.handleEditModal({ ...this.state.selectedUser, email: e.target.value })} />
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={this.handleEditModal}>Cancel</Button>
-            <Button variant="primary" onClick={this.handleEditUser}>Save</Button>
-          </Modal.Footer>
-        </Modal>
-      </div>
-    );
-  }
-}
+      <input
+        type="text"
+        placeholder="Name"
+        value={newUserName}
+        onChange={(e) => setNewUserName(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Email"
+        value={newUserEmail}
+        onChange={(e) => setNewUserEmail(e.target.value)}
+      />
+      <button onClick={addUser}>Add New User</button>
+
+      {popoverAddressContent && (
+        <div className="popover-content">
+          <h3>Address:</h3>
+          <p>{popoverAddressContent}</p>
+        </div>
+      )}
+      {popoverCompanyContent && (
+        <div className="popover-content">
+          <h3>Company:</h3>
+          <p>{popoverCompanyContent}</p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default UserList;
-
-
