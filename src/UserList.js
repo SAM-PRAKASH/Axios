@@ -31,21 +31,18 @@ const UserList = () => {
   };
 
   const addUser = () => {
-    // Generate a unique ID for the new user (in a real scenario, this should come from the server)
+ 
     const newUserId = userList.length + 1;
     
-    // Create a new user object
+ 
     const newUser = {
       id: newUserId,
       name: newUserName,
-      username: newUserEmail, // Assuming email as the username for this example
-      // Add other properties for the new user as needed
+      username: newUserEmail,
     };
 
-    // Update the state with the new user
     setUserList(prevUsers => [...prevUsers, newUser]);
 
-    // Clear the input fields
     setNewUserName('');
     setNewUserEmail('');
   };
